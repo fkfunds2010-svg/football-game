@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>⚡ FRANKLIN FOOTBALL · ESPORTS</title>
-  <!-- ✅ Official Colyseus SDK – always use this, never a local copy -->
   <script src="https://unpkg.com/@colyseus/sdk@0.17.42/dist/colyseus.js"></script>
   <style>
     *{box-sizing:border-box;font-family:'Segoe UI',sans-serif}
@@ -183,8 +182,7 @@
       <div class="modal-box"><h2>🌀 Opponent reconnecting…</h2><p>Please wait</p></div>
     </div>
 
-    <audio id="goalHorn" src="index_files/9.mp3" preload="auto"></audio>
-    <audio id="clutchSound" src="index_files/clutch.mp3" preload="auto"></audio>
+    <audio id="goalHorn" src="https://drive.google.com/uc?export=download&id=1WQbvcH0DGMpvxhfrpCAvk7JOnRvaeh4d" preload="auto"></audio>
     <audio id="bgMusic" loop=""></audio>
   </div>
 </div>
@@ -214,7 +212,7 @@
     lobby: document.getElementById('lobbyPanel'), game: document.getElementById('gamePanel')
   };
   const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
-  const goalHorn = document.getElementById('goalHorn'), clutchSound = document.getElementById('clutchSound');
+  const goalHorn = document.getElementById('goalHorn');
   const commentaryDiv = document.getElementById('commentary'), goalBanner = document.getElementById('goalBanner');
   const warningDiv = document.getElementById('warning'), winnerMsgDiv = document.getElementById('winnerMsg');
   const pingEl = document.getElementById('pingDisplay'), statusBar = document.getElementById('statusBar');
@@ -226,14 +224,37 @@
   const mobileControls = document.getElementById('mobileControls');
   const aimIndicator = document.getElementById('aimIndicator');
 
-  // Audio
-  const playlist = ['1.mp3','3.mp3','4.mp3','5.MP3','6.mp3']; let currentTrack=0;
-  const bgMusic = document.getElementById('bgMusic'); bgMusic.volume=0.6;
-  function playNextTrack(){ if(!gameActive) return; bgMusic.src=playlist[currentTrack]; bgMusic.play().catch(()=>{}); currentTrack=(currentTrack+1)%playlist.length; }
+  // 🎵 Music Playlist – DIRECT Google Drive links
+  const playlist = [
+    'https://drive.google.com/uc?export=download&id=1eM_b8LdjIoxxx_yBaOk4wU7x02altW7d',
+    'https://drive.google.com/uc?export=download&id=1mlY6W6FnZ-Nvd7X2S89_ft9Y8vCYcgjk',
+    'https://drive.google.com/uc?export=download&id=1UHVwqo-eQIOezp9f-t3tlne5vRvHu50r',
+    'https://drive.google.com/uc?export=download&id=1ans6MxGJfcCJkjOTCI_W6lX6vPaCAd7V',
+    'https://drive.google.com/uc?export=download&id=1IvIHZEgIyVqMic7lnhXSyMQk4cnTrcrk'
+  ];
+  let currentTrack = 0;
+  const bgMusic = document.getElementById('bgMusic');
+  bgMusic.volume = 0.6;
+
+  function playNextTrack() {
+    if (!gameActive) return;
+    bgMusic.src = playlist[currentTrack];
+    bgMusic.play().catch(() => {});
+    currentTrack = (currentTrack + 1) % playlist.length;
+  }
   bgMusic.addEventListener('ended', playNextTrack);
 
-  function comment(msg,c="#ffcc00"){ commentaryDiv.innerText=msg; commentaryDiv.style.color=c; commentaryDiv.classList.add('show'); setTimeout(()=>commentaryDiv.classList.remove('show'),2000); }
-  function goalAnimation(color){ goalBanner.style.textShadow=`0 0 30px ${color},0 0 60px ${color}`; goalBanner.classList.add('show'); setTimeout(()=>goalBanner.classList.remove('show'),1500); }
+  function comment(msg, c = "#ffcc00") {
+    commentaryDiv.innerText = msg;
+    commentaryDiv.style.color = c;
+    commentaryDiv.classList.add('show');
+    setTimeout(() => commentaryDiv.classList.remove('show'), 2000);
+  }
+  function goalAnimation(color) {
+    goalBanner.style.textShadow = `0 0 30px ${color},0 0 60px ${color}`;
+    goalBanner.classList.add('show');
+    setTimeout(() => goalBanner.classList.remove('show'), 1500);
+  }
   function sendEmote(emoji) { if (room) room.send("emote", emoji); }
   function sendRematch() { if (room) { room.send("rematch"); rematchBtn.classList.add('hidden'); } }
   regionSelect.addEventListener('change', () => { selectedRegion = regionSelect.value; });
@@ -386,9 +407,8 @@
     // ✅ Catch state that arrived before we registered the callback
     if (room.state) {
       const state = room.state;
-      // Manually apply the first state – this updates the room code immediately
       document.getElementById('roomCodeDisplay').innerText = state.roomCode || "—";
-      serverState = state;  // also set the global state variable
+      serverState = state;
     }
 
     room.onMessage("playerNames", data => {
@@ -412,7 +432,7 @@
     });
     room.onMessage("event", ev => {
       if (ev.type === "GOAL") {
-        goalAnimation(ev.data.color); goalHorn.currentTime=0; goalHorn.play().catch(()=>{}); clutchSound.currentTime=0; clutchSound.play().catch(()=>{});
+        goalAnimation(ev.data.color); goalHorn.currentTime=0; goalHorn.play().catch(()=>{});
         comment(ev.data.scorer==='p1'?"GOAL! PLAYER 1 SCORES!":"GOAL! PLAYER 2 SCORES!",ev.data.color);
         document.getElementById('app').classList.add('shake'); setTimeout(()=>document.getElementById('app').classList.remove('shake'),500);
         goalFreeze = true;
@@ -483,8 +503,6 @@
   }
 
   function handleDisconnect() {
-    // The official Colyseus SDK manages reconnection automatically.
-    // We DO NOT call room.reconnect() – it does not exist.
     if (reconnectAttempts < 1) {
       console.warn("Connection lost. The SDK will try to reconnect automatically.");
       reconnectAttempts++;
@@ -517,7 +535,6 @@
     ctx.strokeRect(0,150,40,200); ctx.strokeRect(960,150,40,200);
     ctx.beginPath(); ctx.moveTo(500,0); ctx.lineTo(500,500); ctx.stroke();
 
-    // ✅ Safety check: only draw if the ball data exists (prevents crash)
     if (serverState && serverState.ball) {
       const ball = serverState.ball;
       if (prevBallX === undefined) { prevBallX = ball.x; prevBallY = ball.y; }
